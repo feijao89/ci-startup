@@ -32,7 +32,7 @@ class Welcome extends Controller {
 		echo '<table>';
 		foreach($o->getBeans() as $bean) {
 			echo '<tr>';
-			echo '<td>'.$bean->getName() . ($bean->getExtend() ? ' extends '. $bean->getExtend()->getName() : '') .'</td><td><table>';
+			echo '<td>'.$bean->getId().') '.$bean->getName() . ($bean->getExtend() ? ' extends '. $bean->getExtend()->getName() : '') .'</td><td><table>';
 				foreach ($bean->getAttributes() as $att) {
 					echo '<tr>';
 					echo '<td>'.$att->getName().'</td>';

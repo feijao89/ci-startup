@@ -1,6 +1,5 @@
 <?php
 
-
 class BeanQuery
 {
 	public $db;

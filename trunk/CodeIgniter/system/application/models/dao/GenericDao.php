@@ -46,7 +46,7 @@ class GenericDao
 			$this->db->where($this->table.'.'.$key,$value,false);
 		}
 		$list = $this->getList(1);		
-		return empty($list) ? NULL : $list[0];
+		return empty($list) ? NULL : array_shift($list);
 	}
 	
 	public function getList($limit=NULL, $offset=NULL) {
@@ -67,7 +67,7 @@ class GenericDao
 		$list = array();
 		foreach($query->result_array() as $row) {
 			$o = $this->makeBean($row);
-			$list[] = $o;
+			$list[$o->getId()] = $o;
 		}
 		return $list;
 	}
@@ -87,7 +87,8 @@ class GenericDao
 				$field = $relation.'_id';
 				
 				$this->db->select($prefix.'.'.$field.' AS '. $prefix. $field, false);
-			}			
+			}		
+				
 		}
 	}
 	
@@ -116,7 +117,45 @@ class GenericDao
 		}
 		
 		$o = $this->all[$id_value];
-			
+		/*
+		if ($field_prefix) {
+			foreach ($this->getRelations() as $relation => $config) {
+				$dao = $this->factory->getDao($config['bean']);
+				$relation_id = $relation.'_id';
+				if ($config['type'] == 'has_one') {
+					$o->{$relation} = $dao->makeBean($row,$relation);
+					$o->{$relation_id} = (is_null($o->{$relation})) ? 0 : $o->{$relation}->getId();
+				}
+				else {
+					$listEntry = $dao->makeBean($row,$relation);
+					if ($listEntry && !in_array($listEntry,$o->{$relation})) {
+						$o->{$relation}[] = $listEntry;
+						
+					}
+				}
+				
+			}
+		}
+		else {
+			foreach ($this->getRelations() as $relation => $config) {
+				$dao = $this->factory->getDao($config['bean']);
+				$relation_id = $relation.'_id';
+				if ($config['type'] == 'has_one') {
+					$o->{$relation} = $dao->makeBean($row,$relation);
+					$o->{$relation_id} = (is_null($o->{$relation})) ? 0 : $o->{$relation}->getId();
+				}
+				else {
+					$listEntry = $dao->makeBean($row,$relation);
+					if ($listEntry && !in_array($listEntry,$o->{$relation})) {
+						$o->{$relation}[] = $listEntry;
+						$key = $this->beanName.'_'.$relation .'_'.$o->getId();
+						$this->_list_relations_cache[$key][$listEntry->getId()] = $listEntry;
+					}
+				}
+				
+			}
+		}*/
+		
 		foreach ($this->getRelations() as $relation => $config) {
 			$dao = $this->factory->getDao($config['bean']);
 			if (array_key_exists($relation,$this->hasOne)) {
@@ -128,19 +167,19 @@ class GenericDao
 				
 				if ( $field_prefix ) {
 					//echo '<br>-----relationlist<br>';
-					$o->{$relation} = $this->getListByRelation($o,$config);
+					$o->{$relation} =& $this->getListByRelation($o,$config);
 					//echo '<br>-----end relationlist';
 				}
 				else {
 					$listEntry = $dao->makeBean($row,$relation);
 					if ($listEntry) {
-						$o->{$relation}[] = $listEntry;
+						$o->{$relation}[$listEntry->getId()] = $listEntry;
 						$key = $this->beanName.'_'.$relation .'_'.$o->getId();
 						if (!array_key_exists($key,$this->_list_relations_cache)) {
 							$this->_list_relations_cache[$key] = array();
 						}
 						//echo '<br>set '. $key .'';
-						$this->_list_relations_cache[$key][] = $listEntry;
+						$this->_list_relations_cache[$key][$listEntry->getId()] = $listEntry;
 					}					
 				}
 			}

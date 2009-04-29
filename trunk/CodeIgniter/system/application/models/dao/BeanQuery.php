@@ -19,13 +19,13 @@ class BeanQuery
 
 		foreach ( $dao->allNotLazyRelations as $relation => $config ) {
 			$this->rowObservers[$relation] = $dao->factory->getDao($config['bean']);
-			echo '<br>Aggiungo Observer : '. $relation .' => '. $this->rowObservers[$relation]->beanName .'Dao';
+			//echo '<br>Aggiungo Observer : '. $relation .' => '. $this->rowObservers[$relation]->beanName .'Dao';
 		}
 		
 	}	
 	
 	public function select() {
-		echo '<br>Seleziono : '. $this->dao->beanName ;
+		//echo '<br>Seleziono : '. $this->dao->beanName ;
 		foreach($this->dao->getFields() as $field => $type) {
 			$this->db->select($this->dao->table . '.' . $field);
 		}
@@ -33,10 +33,10 @@ class BeanQuery
 		$this->db->from($this->dao->table);
 		$this->db->order_by($this->dao->table . '.id');
 		foreach ( $this->rowObservers as $relation => $dao) {
-			echo '<br>Seleziono Relazione : '. $relation .' con '. $dao->beanName .'Dao' ;
+			//echo '<br>Seleziono Relazione : '. $relation .' con '. $dao->beanName .'Dao' ;
 			//print_r(array_keys($this->dao->allRelations));
 			$config = $this->dao->allRelations[$relation];
-			print_r ($config);
+			//print_r ($config);
 			if ( $config['type'] == 'has_one') {
 				$relation_id = $relation .'_id';
 				//$this->db->select($this->dao->table . '.' . $relation_id);

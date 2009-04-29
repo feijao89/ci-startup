@@ -88,7 +88,7 @@ class GenericDao
 				$this->allFields[$table][$field] = $type;
 			}
 			
-			print_r($this->allFields[$table]);
+			//print_r($this->allFields[$table]);
 		}
 		return $this->allFields[$table];
 	}
@@ -96,15 +96,15 @@ class GenericDao
 	public function injectRelations($bean) {
 		foreach ( $this->allNotLazyRelations as $relation => $config ) {
 			//$dao = $this->factory->getDao($config['bean']);
-			echo '<br>relazione '. $config['type'] .' '. $relation;
+			//echo '<br>relazione '. $config['type'] .' '. $relation;
 			if ( $config['type'] == 'has_one') {
-				echo '<br>inject '. $config['bean'] .' in '.$relation.' of '. $this->beanName .' '. ($bean->{$relation} ? $bean->{$relation}->id : 0);
+				//echo '<br>inject '. $config['bean'] .' in '.$relation.' of '. $this->beanName .' '. ($bean->{$relation} ? $bean->{$relation}->id : 0);
 				$relation_id = $relation .'_id';
 				$bean->{$relation} = $this->factory->getDao($config['bean'])->getOne($bean->{$relation_id});
 				
 			}
 			else {
-				echo '<br>inject '. $config['bean'] .' list in '.$relation.' of '. $this->beanName .' ';
+				//echo '<br>inject '. $config['bean'] .' list in '.$relation.' of '. $this->beanName .' ';
 				$bean->{$relation} = $this->getListByRelation($relation,$bean);
 			}
 		}
@@ -140,14 +140,16 @@ class GenericDao
 		$cache_key = $this->beanName . '_' . $config['name'] . '_' . $bean->getId();
 		
 		if ( ! array_key_exists($cache_key, $this->cache_list)  ) {
-			echo '<br>Genero '. $cache_key .' list';
+			//echo '<br>Genero '. $cache_key .' list';
 			$dao = $this->factory->getDao($config['bean']);
 			$this->db->where($dao->table.'.'.$config['fkey'],$bean->getId(),false);
 			$this->cache_list[$cache_key] = $dao->getList();
 		}
+		/*
 		else {
 			echo '<br>'.$cache_key.' esiste ';
 		}
+		*/
 		return $this->cache_list[$cache_key];
 	}
 	

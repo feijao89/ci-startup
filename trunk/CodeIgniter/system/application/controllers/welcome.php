@@ -12,22 +12,41 @@ class Welcome extends Controller {
 	function index()
 	{
 		$this->output->enable_profiler(TRUE);
-		//$this->_initialize();
-		//$this->_create_package();
+
+		/*
+		$list = array();
+		$list[] = $this->_create_knight('joke2k','Joke');
+		$list[] = $this->_create_knight('mekhet','Mekhet sotto terra');
+		$list[] = $this->_create_knight('grety','Dolce Grety');
+		
+		foreach ($list as $k ) {
+			echo '<br>'. $k->getUsername();
+		}*/
 		
 		$this->_show_bean();
+		
+		//$this->load->model('BeanFactory');
+		//$this->BeanFactory->initialize();
 		$this->load->view('welcome_message');
 	}
 	
-	function _initialize() {
+	
+	function _create_knight($username,$name) {
 		$this->load->model('BeanFactory');
-		$this->BeanFactory->getDao('package')->createTable();
-		$this->BeanFactory->getDao('bean')->createTable();
-		$this->BeanFactory->getDao('attribute')->createTable();
+		//$this->BeanFactory->getDao('knight')->createTable();
+		$dao = $this->BeanFactory->getDao('knight');
+		//echo 'qui';
+		$k = new Knight();
+		$k->setName($name);
+		$k->setUsername($username);
+		$k->setEmail($username.'@email.it');
+		$k->setPassword(md5($name.$username));
+		return $dao->save($k);
 	}
 	
 	function _show_bean() {
 		$this->load->model('BeanFactory');
+		
 		$o = $this->BeanFactory->getDao('package')->getOne( 9 );
 		echo '<h1>Package : '. $o->getName() .'</h1>';
 		echo '<table>';
@@ -36,27 +55,30 @@ class Welcome extends Controller {
 			echo '<td>'.$bean->getId().') '.$bean->getName();
 			if ($bean->getExtend()) {
 				echo ' extends '. $bean->getExtend()->getId() .') '. $bean->getExtend()->getPackage()->getName() .':'.$bean->getExtend()->getName() ;
+				if ( $bean->getExtend()->getExtend() ) {
+					echo ' extends '. $bean->getExtend()->getExtend()->getId() .') '. $bean->getExtend()->getExtend()->getPackage()->getName() .':'.$bean->getExtend()->getExtend()->getName() ;
+				}
 			}
 			echo '</td><td><table>';
-				foreach ($bean->getAttributes() as $att) {
+			foreach ($bean->getAttributes() as $att) {
+				echo '<tr>';
+				echo '<td>'.$att->getId() .' '.$att->getName() .' -> '. $att->external_id;
+				if ( $att->getExternal() ) {
+					echo ' '. $att->getExternal()->getName();
+				}
+				echo '</td>';
+				echo '</tr>';
+			}
+			if ($bean->getExtend()) {
+				foreach ( $bean->getExtend()->getAttributes() as $att) {
 					echo '<tr>';
 					echo '<td>'.$att->getId() .' '.$att->getName() .' -> '. $att->external_id;
 					if ( $att->getExternal() ) {
 						echo ' '. $att->getExternal()->getName();
 					}
-					echo '</td>';
 					echo '</tr>';
 				}
-				if ($bean->getExtend()) {
-					foreach ( $bean->getExtend()->getAttributes() as $att) {
-						echo '<tr>';
-						echo '<td>'.$att->getId() .' '.$att->getName() .' -> '. $att->external_id;
-						if ( $att->getExternal() ) {
-							echo ' '. $att->getExternal()->getName();
-						}
-						echo '</tr>';
-					}
-				}
+			}
 			echo '</table></td></tr>';
 		}
 		echo '</table>';

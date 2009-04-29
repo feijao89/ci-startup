@@ -4,6 +4,8 @@
 require_once('PersistenceException.php');
 require_once('BeanQuery.php');
 
+
+
 class GenericDao
 {
 	public $factory;
@@ -43,6 +45,7 @@ class GenericDao
 		$this->allBeans = new ArrayObject();
 		$this->cache_list = array();
 		$this->completedBeans = array();
+		
 	}
 	
 	protected function buildRelations() {
@@ -138,7 +141,7 @@ class GenericDao
 		$config = $this->allRelations[$relation];
 		
 		$cache_key = $this->beanName . '_' . $config['name'] . '_' . $bean->getId();
-		
+
 		if ( ! array_key_exists($cache_key, $this->cache_list)  ) {
 			//echo '<br>Genero '. $cache_key .' list';
 			$dao = $this->factory->getDao($config['bean']);
@@ -210,7 +213,81 @@ class GenericDao
 		return $o;
 		
 	}
+	
+	
+	/*
+	 * Rende persistente un bean
+	 */
+	public function save($object) {
+		if ($object->id == 0) {
+			$this->create($object);
+		}
+		else {
+			$this->update($object);
+		}
+		return $object;
+	}
+	
+	/*
+	 * Prenota un nuovo ID e inserisce un bean
+	 */
+	protected function create($object) {
+		$object->id = $this->nextID();
+		
+		if ($this->prepare($object)) {
+			$this->db->insert($this->table);
+		}
+	}
+	
+	/*
+	 * Esegue un update
+	 */
+	protected function update($object) {
+		$this->db->where('id',$object->id);
+		if ($this->prepare($object)) {
+			$this->db->update($this->table);
+		}
+	}
+	
+	/*
+	 * Prepara i parametri SET per salvare un oggetto
+	 */
+	protected function prepare($object) {
+		foreach($this->getFields() as $field => $type) {
+			if ($type == 'timestamp') {
+				$value = $time_str = (empty($object->{$field})) ? 'CURRENT_TIMESTAMP' : 'TIMESTAMP WITH TIME ZONE \'epoch\' + '.$object->{$field}.' * INTERVAL \'1 second\'';
+				$this->db->set($field,$time_str,false);
+			}
+			elseif ($type == 'boolean') {
+				$this->db->set($field, $object->{$field} ? 'TRUE' : 'FALSE',false);	
+			}
+			else {
+				$this->db->set($field, $object->{$field});
+			}
+			
+		}
+		return true;
+	}
+	
+	/*
+	 * Ritorna un nuovo id per un oggetto
+	 */
+	protected function nextID() {
+		$query = $this->db->query('SELECT nextval(\''.$this->table.'_id_seq\') as new_id');
+		$row = $query->row();
+		return $row->new_id;
+	}
+	
+	/*
+	 * Cancella un Bean dal database
+	 */
+	public function delete($object) {
+		$this->db->where('id',$object->id);
+		$this->db->delete($this->table);
+		return $object;
+	}
 
+	
 	
 	
 }

@@ -6,39 +6,27 @@
 
 class BeanDao
 {
-	public function getOne($beanId) {
-		if(!$beanId) { return NULL;	}
+	public $query;
+	public $relations;
+	public $name;
+	public $isMain;
+	
+	public $query;
+	
+	public function BeanDao(QueryDao $query, GenericDao $dao) {
+		$this->query = $query;
 		
-		if (!is_array($beanId)) {
-			$beanId = array('id' => $beanId);
+		foreach ($dao->hasOne as $relation => $config) {
+			
+			if (array_key_exists(($relation)))
+			$this->relations[$relation] = new BeanRelation($query,$relation,$config);
 		}
-		
-		$this->selectBean()->whereBeanHasKey($beanId);
-		
-		$list = $this->getList(1);
-		
-		if (!$list || empty($list)) {
-			return NULL;
+		foreach ($dao->hasMany as $relation => $config) {
+			
+			$this->relations[$relation] = new BeanRelation($query,$relation,$config);
 		}
-		
-		return array_shift($list);
-		
 	}
 	
-	public function selectBean() {
-		$this->db->select(array_keys($this->getFields($this->table.'.')) );
-	}
-	
-	public function whereBeanHasKey($keys)  {
-		foreach ($keys as $key => $value) {
-			if (is_int($value)) {
-				$this->db->where($key,$value,false);
-			}
-			else {
-				$this->db->where($key,$value);
-			}			
-		}
-	}
 }
 
 ?>

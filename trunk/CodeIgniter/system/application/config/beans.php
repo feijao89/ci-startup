@@ -10,6 +10,10 @@
      * - text
      * - char(lenght)
      * - boolean
+     * 
+     * Regole :
+     * - tutti i beans devono avere un id intero
+     * - tutte le chiavi esterne devono avere _id come finale
      */
 	
 	$config['beans'] = array(
@@ -46,10 +50,10 @@
 				'type' => 'varchar(30)',
 				'value' => 'varchar(30)',
 				'bean_id' => 'int' 
-				)/*,
+				),
 			'has_one' => array(
-				'bean' => array('bean' => 'Bean')
-			)*/
+				'external' => array('bean' => 'Bean')
+			)
 		),
 		'Test1' => array(
 			'fields' => array(

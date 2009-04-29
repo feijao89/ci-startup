@@ -14,7 +14,7 @@ class PackageProxy extends Package implements Proxy
 		
 	public function getBeans() {
 		
-		return $this->beanFactory->getDao('package')->getListByRelation($this,'beans');
+		return $this->beanFactory->getDao('package')->getListByRelation('beans',$this);
 	}
 	
 }

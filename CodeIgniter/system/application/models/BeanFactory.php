@@ -57,7 +57,7 @@ class BeanFactory extends Model
 				throw new Exception($class_name.' not found. '. $file .' not exists');
 			}
 		}
-		
+		//echo 'new Dao '. $daoName;
 		$dao = new $class_name($this,$daoName,$config);
 		
 		return $dao;

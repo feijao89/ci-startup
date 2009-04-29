@@ -13,22 +13,13 @@ class Attribute
 	public $type;
 	public $value;
 	
-	public $bean;
+	//public $bean;
 	public $bean_id;
 	
+	public $external;
+	public $external_id;
 	
-	public function getBean()
-    {
-        return $this->bean;
-    }
-
-    public function setBean($bean)
-    {
-        $this->bean = $bean;
-		$this->bean_id = $bean->getId();
-    }
-	
-    public function getValue()
+	public function getValue()
     {
         return $this->value;
     }
@@ -63,6 +54,17 @@ class Attribute
     public function setType($type)
     {
         $this->type = $type;
+    }
+	
+  
+
+    public function getExternal()
+    {
+        return $this->external;
+    }
+    public function setExternal($external)
+    {
+        $this->external = $external;
     }
 
 }

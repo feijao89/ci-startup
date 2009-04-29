@@ -37,10 +37,10 @@
 				),
 			'has_one' => array(
 				'package' => array('bean' => 'Package'),
-				'extend' => array('bean' => 'Bean')
+				'extend' => array('bean' => 'Bean', 'lazy' => true)
 			),
 			'has_many' => array(
-				'attributes' => array('bean' => 'Attribute', 'fkey' => 'bean_id'),
+				'attributes' => array('bean' => 'Attribute', 'fkey' => 'bean_id', 'lazy' => true),
 			)
 		),
 		'Attribute' => array(
@@ -60,6 +60,15 @@
 				'id' => 'int',
 				'a' => 'boolean',
 				'b' => 'text'
+			)
+		),
+		'Knight' => array(
+			'fields' => array(
+				'id' => 'int',
+				'name' => 'varchar(30)',
+				'username' => 'varchar(30)',
+				'password' => 'char(32)',
+				'email' => 'varchar(64)'
 			)
 		)
 	);

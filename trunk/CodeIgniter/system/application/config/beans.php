@@ -37,10 +37,10 @@
 				),
 			'has_one' => array(
 				'package' => array('bean' => 'Package'),
-				'extend' => array('bean' => 'Bean', 'lazy' => true)
+				'extend' => array('bean' => 'Bean')
 			),
 			'has_many' => array(
-				'attributes' => array('bean' => 'Attribute', 'fkey' => 'bean_id', 'lazy' => true),
+				'attributes' => array('bean' => 'Attribute', 'fkey' => 'bean_id'),
 			)
 		),
 		'Attribute' => array(

@@ -1,11 +1,18 @@
 <?php
 require_once('dao/GenericDao.php');
+//require_once('bean/Package.php');
+//require_once('bean/Bean.php');
+//require_once('bean/Attribute.php');
+//require_once('bean/PackageProxy.php');
 
 
 class BeanFactory extends Model
 {
 	public $daos;
 	public $proxies;
+	
+	public $_query_count = 0;
+	
 	public function BeanFactory() {
 		parent::Model();
 		$this->load->config('beans');
@@ -33,6 +40,7 @@ class BeanFactory extends Model
 	}
 	
 	public function getDao($daoName) {
+		//echo '<br>Prelevo il Dao '. $daoName;
 		$daoName = ucfirst($daoName);
 		if(!array_key_exists($daoName,$this->daos)) {
 			$this->daos[$daoName] = $this->createDao($daoName);
@@ -40,6 +48,7 @@ class BeanFactory extends Model
 		return $this->daos[$daoName];
 	}
 	private function createDao($daoName) {
+		//echo '<br>CREATE '. $daoName;
 		$config = $this->getConfig($daoName);
 		$class_name = 'GenericDao';
 		// Prepare path
@@ -62,7 +71,7 @@ class BeanFactory extends Model
 		// Import model
 		$file = $path . 'bean/' . $daoName . EXT;
 		if (file_exists($file)){
-			//echo $file;
+			
 			require_once($file);
 				
 		}

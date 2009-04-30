@@ -21,11 +21,15 @@ class BeanQuery
 			$this->rowObservers[$relation] = $dao->factory->getDao($config['bean']);
 			//echo '<br>Aggiungo Observer : '. $relation .' => '. $this->rowObservers[$relation]->beanName .'Dao';
 		}
+		if ($dao->factory->_query_count >= 10) {
+			throw new PersistenceException('Excute too query (10) (last : '. $this->db->last_query());
+		}
 		
 	}	
 	
 	public function select() {
 		//echo '<br>Seleziono : '. $this->dao->beanName ;
+		
 		foreach($this->dao->getFields() as $field => $type) {
 			$this->db->select($this->dao->table . '.' . $field);
 		}
@@ -56,9 +60,11 @@ class BeanQuery
 		return $this;
 	}
 	
-	public function results() {
+	public function results($tmp =false) {
 		$list = array();
+		
 		$query = $this->db->get();
+		$this->dao->factory->_query_count++;
 		// bean build
 		foreach($query->result_array() as $row) {
 			$bean = $this->dao->makeBean($row);
@@ -79,18 +85,25 @@ class BeanQuery
 		}
 		
 		$results = array();
+		
 		// bean tree build
 		foreach ( $list as $id => $bean) {
 			$results[] = $this->dao->injectRelations($bean);	
 			$this->dao->completedBeans[$id] = $bean;
 			foreach ($this->rowObservers as $relation => $dao) {
+				//echo '<br>-Nel '.$dao->beanName.'Dao ci sono '. count($dao->allBeans). ' beans di cui '. count ($dao->completedBeans) .' completi' ;
+				
 				foreach ( $dao->allBeans as $b ) {
 					if ( array_key_exists($b->getId() ,$dao->completedBeans)) {
 						continue;
 					}
-					$dao->injectRelations($b);
+					
 					$dao->completedBeans[$b->getId()] = $b;
+					$dao->injectRelations($b,true);
+					
+					//echo '<br>--completato '. $dao->beanName .' '. $b->getId();
 				}
+				
 			}		
 		}
 		

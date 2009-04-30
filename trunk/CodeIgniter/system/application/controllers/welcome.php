@@ -22,11 +22,16 @@ class Welcome extends Controller {
 		foreach ($list as $k ) {
 			echo '<br>'. $k->getUsername();
 		}*/
+		$this->load->model('BeanFactory');
+		$this->BeanFactory->initialize();
+		//$o = $this->BeanFactory->getDao('package')->getOne( 9 );
+		foreach ( $this->BeanFactory->getDao('package')->getList() as $o) {
+			$this->_show_package($o);
+		}
 		
-		$this->_show_bean();
 		
+		//$this->load->model('BeanFactory');
 		
-		//$this->BeanFactory->initialize();
 		$this->load->view('welcome_message');
 	}
 	
@@ -44,49 +49,47 @@ class Welcome extends Controller {
 		return $dao->save($k);
 	}
 	
-	function _show_bean() {
-		$this->load->model('BeanFactory');
+	function _show_package($o) {
 		
-		$o = $this->BeanFactory->getDao('package')->getOne( 9 );
 		
-		echo '<h1>Package : '. $o->getName() .'</h1>';
-		echo '<table>';
-		//$o->getBeans();
-		//print_r($o);
-		foreach($o->getBeans() as $bean) {
-			
-			echo '<tr>';
-			echo '<td>'.$bean->getId().') '.$bean->getName();
-			if ($bean->getExtend()) {
-				echo ' extends '. $bean->getExtend()->getId() .') '. $bean->getExtend()->getPackage()->getName() .':'.$bean->getExtend()->getName() ;
-				if ( $bean->getExtend()->getExtend() ) {
-					echo ' extends '. $bean->getExtend()->getExtend()->getId() .') '. $bean->getExtend()->getExtend()->getPackage()->getName() .':'.$bean->getExtend()->getExtend()->getName() ;
-				}
-			}
-			echo '</td><td><table>';
-			
-			
-			$b = $bean;
-			$i = 0;
-			
-			do {
-				foreach ($b->getAttributes() as $att) {
-					echo '<tr>';
-					echo '<td>'.$att->getId() .' '.$att->getName() .' -> '. $att->external_id;
-					if ( $att->getExternal() ) {
-						echo ' '. $att->getExternal()->getName();
-					}
-					echo '</td>';
-					echo '</tr>';
-				}
+			echo '<h1>Package : '. $o->getName() .'</h1>';
+			echo '<table>';
+			//$o->getBeans();
+			//print_r($o);
+			foreach($o->getBeans() as $bean) {
 				
-				$b = $b->getExtend();
+				echo '<tr>';
+				echo '<td>'.$bean->getId().') '.$bean->getName();
+				if ($bean->getExtend()) {
+					echo ' extends '. $bean->getExtend()->getId() .') '. $bean->getExtend()->getPackage()->getName() .':'.$bean->getExtend()->getName() ;
+					if ( $bean->getExtend()->getExtend() ) {
+						echo ' extends '. $bean->getExtend()->getExtend()->getId() .') '. $bean->getExtend()->getExtend()->getPackage()->getName() .':'.$bean->getExtend()->getExtend()->getName() ;
+					}
+				}
+				echo '</td><td><table>';
+				
+				
+				$b = $bean;
+				$i = 0;
+				
+				do {
+					foreach ($b->getAttributes() as $att) {
+						echo '<tr>';
+						echo '<td>'.$b->getId().') '.$att->getId() .' '.$att->getName() .' -> '. $att->external_id;
+						if ( $att->getExternal() ) {
+							echo ' '. $att->getExternal()->getName();
+						}
+						echo '</td>';
+						echo '</tr>';
+					}
+					
+					$b = $b->getExtend();
+				}
+				while ($b );
+				
+				echo '</table></td></tr>';
 			}
-			while ($b );
-			
-			echo '</table></td></tr>';
-		}
-		echo '</table>';
+			echo '</table>';
 
 		//print_r($this->BeanFactory->getDao('package')->cache_list);
 		

@@ -16,7 +16,7 @@ class BeanQuery
 			$this->rowObservers[$relation] = $dao->factory->getDao($config['bean']);
 			//echo '<br>Aggiungo Observer : '. $relation .' => '. $this->rowObservers[$relation]->beanName .'Dao';
 		}
-		if ($dao->factory->_query_count >= 10) {
+		if ($dao->factory->_query_count >= config_item('max_query')) {
 			throw new PersistenceException('Excute too query (10) (last : '. $this->db->last_query());
 		}
 		
@@ -31,6 +31,7 @@ class BeanQuery
 		
 		$this->db->from($this->dao->table);
 		$this->db->order_by($this->dao->table . '.id');
+		//$this->dao->orderBy[$this->dao->table . '.id'] = 'ASC';
 		foreach ( $this->rowObservers as $relation => $dao) {
 			//echo '<br>Seleziono Relazione : '. $relation .' con '. $dao->beanName .'Dao' ;
 			//print_r(array_keys($this->dao->allRelations));
@@ -44,6 +45,7 @@ class BeanQuery
 			}
 			else {
 				$this->db->order_by($relation . '.id');
+				//$this->dao->orderBy[$relation . '.id'] = 'ASC';
 				$this->db->join($dao->table .' AS '.$relation,$this->dao->table.'.id = '.$relation.'.'.$config['fkey'],'left');
 			}
 			foreach( $dao->getFields() as $field => $type  ) {
@@ -57,47 +59,74 @@ class BeanQuery
 	
 	public function results() {
 		$list = array();
-		
+		/*foreach ($this->dao->orderBy as $field => $direction) {
+			$this->db->order_by($field, $direction);
+		}*/
 		$query = $this->db->get();
 		$this->dao->factory->_query_count++;
 		// bean build
+		//echo '<br><b>'. $this->db->last_query() .'</b>';
 		foreach($query->result_array() as $row) {
+			
 			$bean = $this->dao->makeBean($row);
+			
 			foreach ($this->rowObservers as $relation => $dao) {
 				$config = $this->dao->allRelations[$relation];
 				$joinedBean = $dao->makeBean($row,$relation);
 				
 				if ( $config['type'] == 'has_many' && $joinedBean) {
 					$cache_key = $this->dao->beanName . '_' . $config['name'] . '_' . $bean->getId();
+					//echo '<br>'.$cache_key;
 					if (!array_key_exists($cache_key,$this->dao->cache_list)) {
 						$this->dao->cache_list[$cache_key] = array();
 					}
+					/*
+					$tmp = array();
+					foreach ( $this->dao->cache_list[$cache_key] as $key => $o ) {
+						$tmp[] = $key .'=='.$o->id;
+					}
+					echo '<br>'. implode(',',$tmp);
+					if (!array_key_exists($joinedBean->getId(),$this->dao->cache_list[$cache_key])) {
+						echo '<br>add '. get_class($joinedBean) .$joinedBean->getId().' in '. $cache_key;
+					}
+					*/
 					$this->dao->cache_list[$cache_key][$joinedBean->getId()] = $joinedBean; 
+					//echo '<br>'. implode(',',array_keys($this->dao->cache_list[$cache_key]));
 				}
 				
 			}
-			$list[$bean->getId()] = $bean;
+			
+			if (!(is_null($bean) || $bean->id == 0)) {
+				//echo '<br>add '. get_class($bean) .' in '. $this->dao->beanName .'Dao '.$bean->getId();
+				$list[$bean->getId()] = $bean;
+			}
+			
 		}
 		
 		$results = array();
 		
 		// bean tree build
 		foreach ( $list as $id => $bean) {
-			$results[] = $this->dao->injectRelations($bean);	
+			
+			$results[$id] = $this->dao->injectRelations($bean);	
 			$this->dao->completedBeans[$id] = $bean;
 			foreach ($this->rowObservers as $relation => $dao) {
 				//echo '<br>-Nel '.$dao->beanName.'Dao ci sono '. count($dao->allBeans). ' beans di cui '. count ($dao->completedBeans) .' completi' ;
-				
-				foreach ( $dao->allBeans as $b ) {
-					if ( array_key_exists($b->getId() ,$dao->completedBeans)) {
-						continue;
+				if ( $dao->isReady ) {
+					$dao->isReady = false;
+					foreach ( $dao->allBeans as $b ) {
+						if ( array_key_exists($b->getId() ,$dao->completedBeans)) {
+							continue;
+						}
+						
+						$dao->completedBeans[$b->getId()] = $b;
+						$dao->injectRelations($b);
+						
+						//echo '<br>--completato '. $dao->beanName .' '. $b->getId();
 					}
-					
-					$dao->completedBeans[$b->getId()] = $b;
-					$dao->injectRelations($b,true);
-					
-					//echo '<br>--completato '. $dao->beanName .' '. $b->getId();
+					$dao->isReady = true;
 				}
+				
 				
 			}		
 		}

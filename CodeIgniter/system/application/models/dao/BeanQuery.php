@@ -11,11 +11,6 @@ class BeanQuery
 		$this->dao = $dao;
 		$this->db = $dao->db;
 		$this->rowObservers = array();
-		/*
-		$this->rowObservers = array(
-			$dao->beanName => $dao
-		);
-		*/
 
 		foreach ( $dao->allNotLazyRelations as $relation => $config ) {
 			$this->rowObservers[$relation] = $dao->factory->getDao($config['bean']);
@@ -60,7 +55,7 @@ class BeanQuery
 		return $this;
 	}
 	
-	public function results($tmp =false) {
+	public function results() {
 		$list = array();
 		
 		$query = $this->db->get();

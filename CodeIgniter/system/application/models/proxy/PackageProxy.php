@@ -8,6 +8,7 @@ class PackageProxy extends Package implements Proxy {
 
 
 	public function getBeans() { 
+	
 		return $this->beanFactory->getDao('Package')->getListByRelation('beans',$this);		
 	}
 }

@@ -46,6 +46,8 @@ class GenericDao
 		$this->cache_list = array();
 		$this->completedBeans = array();
 		
+		
+		
 	}
 	
 	protected function buildRelations() {
@@ -96,19 +98,34 @@ class GenericDao
 		return $this->allFields[$table];
 	}
 	
-	public function injectRelations($bean) {
+	public function injectRelations($bean,$tmp =false) {
 		foreach ( $this->allNotLazyRelations as $relation => $config ) {
 			//$dao = $this->factory->getDao($config['bean']);
 			//echo '<br>relazione '. $config['type'] .' '. $relation;
 			if ( $config['type'] == 'has_one') {
 				//echo '<br>inject '. $config['bean'] .' in '.$relation.' of '. $this->beanName .' '. ($bean->{$relation} ? $bean->{$relation}->id : 0);
 				$relation_id = $relation .'_id';
+				
 				$bean->{$relation} = $this->factory->getDao($config['bean'])->getOne($bean->{$relation_id});
 				
 			}
 			else {
 				//echo '<br>inject '. $config['bean'] .' list in '.$relation.' of '. $this->beanName .' ';
-				$bean->{$relation} = $this->getListByRelation($relation,$bean);
+				$bean->{$relation} = $this->getListByRelation($relation,$bean,$tmp);
+				/*
+				if (!$tmp)
+				 {$bean->{$relation} = $this->getListByRelation($relation,$bean,$tmp);}
+				 else {
+				 	$cache_key = $this->beanName . '_' . $config['name'] . '_' . $bean->getId();
+					if ( array_key_exists($cache_key, $this->cache_list) )  {
+						$bean->{$relation} = $this->getListByRelation($relation,$bean,$tmp);
+					}
+					else {
+						echo '<br>-----!'.$this->beanName . '_' . $relation . '_' . $bean->getId() . ' ';
+					}
+					
+				 }
+				 */
 			}
 		}
 		return $bean;
@@ -129,12 +146,14 @@ class GenericDao
 	public function getList($limit = NULL, $offset = NULL) {
 		//echo '-> '.$this->beanName.'Dao getList '. $this->allNotLazyRelations;
 		$query = new BeanQuery($this);
+		//$query->select();
 		return $query->select()->results();
 	}
 	
 	
 	public $cache_list;
 	public function getListByRelation($relation,$bean) {
+		//echo '<br>getListByRelation('.$relation.','.$bean->getId().')';
 		if (!(is_object($bean) && $bean)) { return array(); }
 		if (!$bean->getId()) { return array(); }
 		
@@ -143,16 +162,19 @@ class GenericDao
 		$cache_key = $this->beanName . '_' . $config['name'] . '_' . $bean->getId();
 
 		if ( ! array_key_exists($cache_key, $this->cache_list)  ) {
-			//echo '<br>Genero '. $cache_key .' list';
+			//echo '<br>Genero '. $cache_key .' list '. count($this->cache_list);
+			
 			$dao = $this->factory->getDao($config['bean']);
 			$this->db->where($dao->table.'.'.$config['fkey'],$bean->getId(),false);
 			$this->cache_list[$cache_key] = $dao->getList();
+			//echo ' -> '. count($this->cache_list);
 		}
 		/*
 		else {
 			echo '<br>'.$cache_key.' esiste ';
 		}
 		*/
+		
 		return $this->cache_list[$cache_key];
 	}
 	

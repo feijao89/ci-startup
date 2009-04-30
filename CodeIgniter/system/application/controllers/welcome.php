@@ -25,7 +25,7 @@ class Welcome extends Controller {
 		
 		$this->_show_bean();
 		
-		//$this->load->model('BeanFactory');
+		
 		//$this->BeanFactory->initialize();
 		$this->load->view('welcome_message');
 	}
@@ -48,9 +48,13 @@ class Welcome extends Controller {
 		$this->load->model('BeanFactory');
 		
 		$o = $this->BeanFactory->getDao('package')->getOne( 9 );
+		
 		echo '<h1>Package : '. $o->getName() .'</h1>';
 		echo '<table>';
+		//$o->getBeans();
+		//print_r($o);
 		foreach($o->getBeans() as $bean) {
+			
 			echo '<tr>';
 			echo '<td>'.$bean->getId().') '.$bean->getName();
 			if ($bean->getExtend()) {
@@ -60,29 +64,30 @@ class Welcome extends Controller {
 				}
 			}
 			echo '</td><td><table>';
-			foreach ($bean->getAttributes() as $att) {
-				echo '<tr>';
-				echo '<td>'.$att->getId() .' '.$att->getName() .' -> '. $att->external_id;
-				if ( $att->getExternal() ) {
-					echo ' '. $att->getExternal()->getName();
-				}
-				echo '</td>';
-				echo '</tr>';
-			}
-			if ($bean->getExtend()) {
-				foreach ( $bean->getExtend()->getAttributes() as $att) {
+			
+			
+			$b = $bean;
+			$i = 0;
+			
+			do {
+				foreach ($b->getAttributes() as $att) {
 					echo '<tr>';
 					echo '<td>'.$att->getId() .' '.$att->getName() .' -> '. $att->external_id;
 					if ( $att->getExternal() ) {
 						echo ' '. $att->getExternal()->getName();
 					}
+					echo '</td>';
 					echo '</tr>';
 				}
+				
+				$b = $b->getExtend();
 			}
+			while ($b );
+			
 			echo '</table></td></tr>';
 		}
 		echo '</table>';
-		
+
 		//print_r($this->BeanFactory->getDao('package')->cache_list);
 		
 		

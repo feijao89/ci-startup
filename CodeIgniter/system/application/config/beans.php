@@ -16,6 +16,8 @@
      * - tutte le chiavi esterne devono avere _id come finale
      */
 	
+	$config['max_query'] = 10;
+	
 	$config['beans'] = array(
 		'Package' => array(
 			'fields' => array(
@@ -37,7 +39,7 @@
 				),
 			'has_one' => array(
 				'package' => array('bean' => 'Package'),
-				'extend' => array('bean' => 'Bean')
+				'extend' => array('bean' => 'Bean', 'lazy' => true)
 			),
 			'has_many' => array(
 				'attributes' => array('bean' => 'Attribute', 'fkey' => 'bean_id'),

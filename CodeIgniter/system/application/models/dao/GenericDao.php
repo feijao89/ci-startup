@@ -18,6 +18,8 @@ class GenericDao
 	
 	public $toProxify;
 	public $completedBeans;
+	public $isReady = true;
+	//public $orderBy = array();
 	
 	public $allFields;
 	public $allBeans;
@@ -96,7 +98,7 @@ class GenericDao
 		return $this->allFields[$table];
 	}
 	
-	public function injectRelations($bean,$tmp =false) {
+	public function injectRelations($bean) {
 		foreach ( $this->allNotLazyRelations as $relation => $config ) {
 			//echo '<br>relazione '. $config['type'] .' '. $relation;
 			if ( $config['type'] == 'has_one') {
@@ -105,8 +107,14 @@ class GenericDao
 				$bean->{$relation} = $this->factory->getDao($config['bean'])->getOne($bean->{$relation_id});
 			}
 			else {
-				//echo '<br>inject '. $config['bean'] .' list in '.$relation.' of '. $this->beanName .' ';
-				$bean->{$relation} = $this->getListByRelation($relation,$bean,$tmp);
+				$bean->{$relation} = $this->getListByRelation($relation,$bean);
+				/*
+				if ( $relation == 'attributes' ) {
+					$cache = $config['bean'] . '_' . $config['name'] . '_' . $bean->getId();
+					echo '<br>inject '. $this->beanName .'.'.$relation.'['.$bean->id.'] = '.$config['bean'].' count : '. count($bean->{$relation}) ;
+					if ( array_key_exists($cache,$this->cache_list))echo implode(',', array_keys($this->cache_list[$cache]));
+				}
+				*/
 			}
 		}
 		return $bean;
@@ -127,7 +135,9 @@ class GenericDao
 	public function getList($limit = NULL, $offset = NULL) {
 		//echo '-> '.$this->beanName.'Dao getList '. $this->allNotLazyRelations;
 		$query = new BeanQuery($this);
-		return $query->select()->results();
+		$query->select();
+		//$this->orderBy[$this->table.'.id'] = 'DESC';
+		return $query->results();
 	}
 	
 	
@@ -147,7 +157,7 @@ class GenericDao
 			$dao = $this->factory->getDao($config['bean']);
 			$this->db->where($dao->table.'.'.$config['fkey'],$bean->getId(),false);
 			$this->cache_list[$cache_key] = $dao->getList();
-			//echo ' -> '. count($this->cache_list);
+			//echo '<br> set cache '.$cache_key . '  = '. implode(',',array_keys($this->cache_list[$cache_key]));
 		}		
 		return $this->cache_list[$cache_key];
 	}
@@ -161,6 +171,7 @@ class GenericDao
 		if ($id_value === NULL || $id_value == 0) { return NULL; }
 		
 		if (!array_key_exists($id_value,$this->allBeans)) { 
+			
 			$bean = $this->createInstance();
 			
 			foreach ($this->getFields() as $field => $type  ) {

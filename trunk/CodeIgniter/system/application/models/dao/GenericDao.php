@@ -81,7 +81,7 @@ class GenericDao
 			}
 		}
 		$this->allFields[$this->table] = $this->getFields();
-		//$this->toProxify = true;
+		
 	}
 	
 	public function getFields($prefix = false) {
@@ -92,40 +92,21 @@ class GenericDao
 				$field = $prefix ? $prefix . $field : $field;
 				$this->allFields[$table][$field] = $type;
 			}
-			
-			//print_r($this->allFields[$table]);
 		}
 		return $this->allFields[$table];
 	}
 	
 	public function injectRelations($bean,$tmp =false) {
 		foreach ( $this->allNotLazyRelations as $relation => $config ) {
-			//$dao = $this->factory->getDao($config['bean']);
 			//echo '<br>relazione '. $config['type'] .' '. $relation;
 			if ( $config['type'] == 'has_one') {
 				//echo '<br>inject '. $config['bean'] .' in '.$relation.' of '. $this->beanName .' '. ($bean->{$relation} ? $bean->{$relation}->id : 0);
 				$relation_id = $relation .'_id';
-				
 				$bean->{$relation} = $this->factory->getDao($config['bean'])->getOne($bean->{$relation_id});
-				
 			}
 			else {
 				//echo '<br>inject '. $config['bean'] .' list in '.$relation.' of '. $this->beanName .' ';
 				$bean->{$relation} = $this->getListByRelation($relation,$bean,$tmp);
-				/*
-				if (!$tmp)
-				 {$bean->{$relation} = $this->getListByRelation($relation,$bean,$tmp);}
-				 else {
-				 	$cache_key = $this->beanName . '_' . $config['name'] . '_' . $bean->getId();
-					if ( array_key_exists($cache_key, $this->cache_list) )  {
-						$bean->{$relation} = $this->getListByRelation($relation,$bean,$tmp);
-					}
-					else {
-						echo '<br>-----!'.$this->beanName . '_' . $relation . '_' . $bean->getId() . ' ';
-					}
-					
-				 }
-				 */
 			}
 		}
 		return $bean;
@@ -146,7 +127,6 @@ class GenericDao
 	public function getList($limit = NULL, $offset = NULL) {
 		//echo '-> '.$this->beanName.'Dao getList '. $this->allNotLazyRelations;
 		$query = new BeanQuery($this);
-		//$query->select();
 		return $query->select()->results();
 	}
 	
@@ -168,13 +148,7 @@ class GenericDao
 			$this->db->where($dao->table.'.'.$config['fkey'],$bean->getId(),false);
 			$this->cache_list[$cache_key] = $dao->getList();
 			//echo ' -> '. count($this->cache_list);
-		}
-		/*
-		else {
-			echo '<br>'.$cache_key.' esiste ';
-		}
-		*/
-		
+		}		
 		return $this->cache_list[$cache_key];
 	}
 	
@@ -192,13 +166,9 @@ class GenericDao
 			foreach ($this->getFields() as $field => $type  ) {
 				$column = $relation ? $relation . $field : $field;
 				$this->setFieldValue($bean, $field, $row[$column], $type);
-			}
-			
+			}	
 			$this->allBeans[$id_value] = $bean;
 		}
-		
-		
-		
 		return $this->allBeans[$id_value];
 	}
 	
@@ -223,19 +193,14 @@ class GenericDao
 	}
 	
 	private function createInstance() {
-		//echo '<br>Creo instanza di '. $this->beanName.' '. ($this->toProxify ? 'Proxy' : '');
 		if ($this->toProxify) {
-			//echo '<br>creo il proxy '.$this->beanName;
 			$o = $this->factory->getProxy($this->beanName);
 		}
 		else {
-
 			$o = new $this->beanName();
 		}
 		return $o;
-		
-	}
-	
+	}	
 	
 	/*
 	 * Rende persistente un bean

@@ -1,5 +1,5 @@
 <?php
-require_once('dao/GenericDao.php');
+require_once('persistence/GenericDao.php');
 //require_once('bean/Package.php');
 //require_once('bean/Bean.php');
 //require_once('bean/Attribute.php');
@@ -23,7 +23,7 @@ class BeanFactory extends Model
 	public function getProxy($beanName) {
 		$beanName = ucfirst($beanName).'Proxy';
 		if (!array_key_exists($beanName,$this->proxies)) {
-			$path = APPPATH . 'models/proxy/';
+			$path = APPPATH . 'models/persistence/proxy/';
 			$file = $path . '/' . $beanName . EXT;		
 			// Check if file exists, require_once if it does
 			if (file_exists($file))			{
@@ -58,7 +58,7 @@ class BeanFactory extends Model
 
 			$class_name = $config['dao'];
 			// Require BeanDao
-			$file = $path . 'dao/' . $class_name . EXT;		
+			$file = $path . 'persistence/' . $class_name . EXT;		
 			// Check if file exists, require_once if it does
 			if (file_exists($file))			{
 				require_once($file);				
@@ -69,7 +69,7 @@ class BeanFactory extends Model
 			
 		}
 		// Import model
-		$file = $path . 'bean/' . $daoName . EXT;
+		$file = $path . 'model/' . $daoName . EXT;
 		if (file_exists($file)){
 			
 			require_once($file);
@@ -184,7 +184,7 @@ class BeanFactory extends Model
 		$str .= $br.'} '.$br;
 		echo '<pre>&lt;?php' . $str .'?&gt;</pre>';
 		$str = "<?php \n $str \n ?>";
-		$path = APPPATH . 'models/bean';
+		$path = APPPATH . 'models/model';
 		$file = $path . '/' . $dao->beanName . EXT;		
 		// Check if file exists, require_once if it does
 		if (!file_exists($file))			{
@@ -231,7 +231,7 @@ class BeanFactory extends Model
 			$str_proxy = "<?php \n $str_proxy \n ?>";
 			//echo '<pre>' . $str_proxy .'</pre>';
 			
-			$path = APPPATH . 'models/proxy';
+			$path = APPPATH . 'models/persistence/proxy';
 			$file = $path . '/' . $dao->beanName.'Proxy' . EXT;		
 			// Check if file exists, require_once if it does
 			if (!file_exists($file))			{
